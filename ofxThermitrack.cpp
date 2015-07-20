@@ -65,7 +65,7 @@ void ofxThermitrack::setup(string port, int baud, int id){
     comBaudRate = baud;
 
     serial.enumerateDevices();
-    serial.setVerbose(true);
+    //serial.setVerbose(true); Hack by JGB 15/7/15
     serialOk = serial.setup(comPort, comBaudRate);
 
     // todo : change to verbose
@@ -162,8 +162,6 @@ void ofxThermitrack::processDataSinglePoint(){
 
     points.clear();
 
-
-
     // make sure there are 13 chars in the array
     // 0 = cam id
     // 1 = type
@@ -198,15 +196,12 @@ void ofxThermitrack::processDataSinglePoint(){
             float tyNorm = ty / (float)THERMITRACK_POINTS_MAXWIDTH;
 
             addPoint(id, txNorm, tyNorm);
-
-
         }
     }
 
 }
 // ----------------------------------------------------------------------------
 void ofxThermitrack::processDataMultiPoints(){
-
     points.clear();
 
     // put data into string
@@ -216,45 +211,28 @@ void ofxThermitrack::processDataMultiPoints(){
     }
 
     // how many points are there?
-    string numponts = temp.substr(1, 2);
-    int nPoints = ofToInt(numponts);
-
+    string numpoints = temp.substr(2, 2);
+    int nPoints = ofToInt(numpoints);
 	// todo: tidy this up, commented out for now
 	
     if(nPoints > 0){
-/*
+        
         // get the string without the first 4 chars
         temp = temp.substr(4, temp.size());
-
-        // split the string into an array
-        vector<string> vecstrResult;
-        int startpos=0;
-        int endpos = temp.find_first_of(",", startpos);
-        while (endpos != -1){
-            vecstrResult.push_back(temp.substr(startpos, endpos-startpos)); // add to vector
-            startpos = endpos+1; //jump past sep
-            endpos = temp.find_first_of(",", startpos); // find next
-            if(endpos==-1){
-            //lastone, so no 2nd param required to go to end of string
-            vecstrResult.push_back(temp.substr(startpos));
-            }
+        
+        vector<string> split = ofSplitString(temp, ",");
+        
+        for(int i=1; i<split.size()-2; i+=3) {
+            int id = ofToInt(split[i]);
+            float tx = ofToInt(split[i+1]);
+            float ty = ofToInt(split[i+2]);
+            
+            float txNorm = tx / (float)THERMITRACK_POINTS_MAXWIDTH;
+            float tyNorm = ty / (float)THERMITRACK_POINTS_MAXWIDTH;
+            
+            addPoint(id, txNorm, tyNorm);
         }
-        for(int i=0; i<nPoints; i++){
-            //trackedPoints.push_back( irisysTrackPoint() );
-            //trackedPoints[i].id = (myNum*100)+ofToInt(vecstrResult[i*3]);
-           // trackedPoints[i].pos.x = ofToInt(vecstrResult[(i*3)+1]);
-            //trackedPoints[i].pos.y = ofToInt(vecstrResult[(i*3)+2]);
-            //trackedPoints[i].posNormalised.x = trackedPoints[i].pos.x / pointMaxPosVal;
-            //trackedPoints[i].posNormalised.y = trackedPoints[i].pos.y / pointMaxPosVal;
-
-            //float txNorm = tx / (float)THERMITRACK_POINTS_MAXWIDTH;
-            //float tyNorm = ty / (float)THERMITRACK_POINTS_MAXWIDTH;
-
-            //addPoint(id, txNorm, tyNorm);
-        }*/
     }
-
-
 }
 
 // ----------------------------------------------------------------------------
@@ -338,6 +316,12 @@ void ofxThermitrack::getVersion(){
     tempSendBuffer[0] = (unsigned char)'V';
     sendData(1);
 }
+
+void ofxThermitrack::getOneTarget() {
+    tempSendBuffer[0] = (unsigned char) 'O';
+    sendData(1);
+}
+
 void ofxThermitrack::processVersion(){
 
     // todo stor in array?

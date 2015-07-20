@@ -19,6 +19,8 @@ class ofxThermitrack{
 	public:
         ofxThermitrack();
         ~ofxThermitrack();
+    
+        vector <ThermitrackPoint> getPoints(){ return points; };
 
         void            setup(string port, int baud, int id);
         void            update();
@@ -26,6 +28,8 @@ class ofxThermitrack{
         // commands from software to camera
         void            flushCameraBuffer();
         void            getVersion();
+        void            getOneTarget();
+
         void            setBaudRate();
         void            factoryReset();
 
